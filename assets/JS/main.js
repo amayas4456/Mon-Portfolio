@@ -28,6 +28,29 @@ function erase() {
     }
 }
 
+// Fonction pour envoyer une notification de visite via Formspree
+function notifyVisit() {
+    const visitData = new FormData();
+    visitData.append('message', 'Un recruteur a visité votre portfolio');
+    visitData.append('timestamp', new Date().toLocaleString());
+
+    fetch("https://formspree.io/f/xyzywpke", {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json'
+        },
+        body: visitData
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('Notification de visite envoyée avec succès');
+        } else {
+            console.error('Erreur lors de l\'envoi de la notification de visite');
+        }
+    })
+    .catch(error => console.error('Erreur lors de la connexion à Formspree :', error));
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     setTimeout(type, newTextDelay);
     
@@ -39,6 +62,9 @@ document.addEventListener("DOMContentLoaded", () => {
         navLinks.classList.toggle('show'); // Affiche ou cache le menu
     });
 
+    // Envoi de la notification de visite
+    notifyVisit();
+
     // Formulaire de contact - Envoi AJAX
     const contactForm = document.querySelector('.contact-form');
     if (contactForm) {
@@ -47,7 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Collecte les données du formulaire
             const formData = new FormData(contactForm);
-            const formObject = Object.fromEntries(formData.entries());
 
             try {
                 // Envoie des données avec Fetch
@@ -72,7 +97,4 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-    
 });
-
-
