@@ -28,10 +28,33 @@ function erase() {
     }
 }
 
-// Fonction pour envoyer une notification de visite via Formspree
-function notifyVisit() {
+// Fonction pour obtenir l'adresse IP du visiteur via ipify
+async function getVisitorIP() {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip;
+    } catch (error) {
+        console.error("Erreur lors de la récupération de l'IP :", error);
+        return null;
+    }
+}
+
+// Fonction pour envoyer une notification de visite avec l'adresse IP via Formspree
+async function notifyVisit() {
+    const visitorIP = await getVisitorIP(); // Récupère l'adresse IP
+
+    // Vérifie si l'adresse IP est déjà enregistrée dans localStorage
+    const lastIP = localStorage.getItem('lastVisitorIP');
+    if (visitorIP && visitorIP === lastIP) {
+        console.log("IP identique, notification non envoyée.");
+        return;
+    }
+
+    // Si l'IP est différente, envoie une notification et met à jour localStorage
     const visitData = new FormData();
     visitData.append('message', 'Un recruteur a visité votre portfolio');
+    visitData.append('ip_address', visitorIP || 'IP non disponible');
     visitData.append('timestamp', new Date().toLocaleString());
 
     fetch("https://formspree.io/f/xyzywpke", {
@@ -44,6 +67,7 @@ function notifyVisit() {
     .then(response => {
         if (response.ok) {
             console.log('Notification de visite envoyée avec succès');
+            localStorage.setItem('lastVisitorIP', visitorIP); // Enregistre l'IP dans localStorage
         } else {
             console.error('Erreur lors de l\'envoi de la notification de visite');
         }
@@ -62,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
         navLinks.classList.toggle('show'); // Affiche ou cache le menu
     });
 
-    // Envoi de la notification de visite
+    // Envoi de la notification de visite avec l'adresse IP
     notifyVisit();
 
     // Formulaire de contact - Envoi AJAX
